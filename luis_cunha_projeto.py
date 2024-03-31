@@ -59,22 +59,16 @@ for key, value in council.items():
     for item in value:
         parish[item] = list(parishes_vote_count_pd["territoryName"][parishes_vote_count_pd["Council"] == item].drop_duplicates())
 
-def retrieveRegion():
-    adminDivision = ""
-    while adminDivision == "":
-        adminDivision = input("Qual a divisão administrativa que pretende\n1 Distrito\n2 Concelho\n3 Freguesia\n4 Voltar\nDigite um número => ")
-        match adminDivision:
+def retrieveRegion(option):
+        match option:
             case "1":
                 return pickDistrict()
             case "2":
                 return pickCouncil()
             case "3":
                 return pickParish()
-            case "4":
-                return
             case _:
-                adminDivision = ""
-                print("Digite um dos números apresentados")
+                return -1
 
 def pickDistrict():
     count = 1
@@ -86,7 +80,7 @@ def pickDistrict():
 
 def pickCouncil():
     district = pickDistrict()
-    filteredCouncil= list((parishes_vote_count_pd["Council"][parishes_vote_count_pd["District"] == district].drop_duplicates()))
+    filteredCouncil= list(parishes_vote_count_pd["Council"][parishes_vote_count_pd["District"] == district].drop_duplicates())
     count = 1
     for item in filteredCouncil:
         print(count, item)
@@ -119,15 +113,27 @@ def pickColumn(table):
 def func_one():
     territoryList = []
     pickRegionFlag = "s"
-    territoryList.append(retrieveRegion())
+    adminDivision = input("Qual é a divisão administrativa que lhe interessa?\n1 Distrito\n2 Concelho\n3 Freguesia\nDigite um número => ")
+    territoryList.append(retrieveRegion(adminDivision))
     while pickRegionFlag == "s":
-        territoryList.append(retrieveRegion())
+        print("Escolha região para comparar")
+        territoryList.append(retrieveRegion(adminDivision))
         print("Regiões selecionadas ", territoryList)
-        pickRegionFlag = input("Escolher outra região? => ")
-    if territoryList:
+        pickRegionFlag = input("Escolher outra região?(s/n) => ")
+    if adminDivision == "1":
         column = pickColumn(overall_vote_count_pd)
-        plt.bar(list(overall_vote_count_pd["territoryName"][overall_vote_count_pd["territoryName"].isin(territoryList)]), overall_vote_count_pd[column][overall_vote_count_pd["territoryNameList"].isin(territoryList)])
-        plt.ylabel("total votantes legislativas anteriores")
+        plt.bar(list(overall_vote_count_pd["territoryName"][overall_vote_count_pd["territoryName"].isin(territoryList)]), overall_vote_count_pd[column][overall_vote_count_pd["territoryName"].isin(territoryList)])
+        plt.ylabel(column)
+        plt.show()
+    elif adminDivision == "2":
+        column = pickColumn(parishes_vote_count_pd)
+        plt.bar(list(parishes_vote_count_pd["Council"][parishes_vote_count_pd["Council"].isin(territoryList)]), parishes_vote_count_pd[column][parishes_vote_count_pd["Council"].isin(territoryList)])
+        plt.ylabel(column)
+        plt.show()
+    else:
+        column = pickColumn(parishes_vote_count_pd)
+        plt.bar(list(parishes_vote_count_pd["Parish"][parishes_vote_count_pd["Parish"].isin(territoryList)]), parishes_vote_count_pd[column][parishes_vote_count_pd["Parish"].isin(territoryList)])
+        plt.ylabel(column)
         plt.show()
 
 func_one()
