@@ -1,5 +1,8 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
+from pandas.compat import pickle_compat
+from pandas.core.generic import pickle
 
 ########################################
 ########## DATAFRAMES CLEANUP ##########
@@ -32,108 +35,169 @@ parishes_parties_result_pd = pd.DataFrame(pd.read_csv("Eleicoes/Legislativas2019
 ########## DATAFRAMES CLEANUP ##########
 ########################################
 
-def list_entries(column, table):
-    try:
-        return (sorted(list((table.loc[:, column].drop_duplicates()))))
-    except:
-        print("erro")
-        return
-
-def menuShowOptions(options):
-    optionNum = 1
-    for item in options:
-        print(optionNum, ". ", item)
-        optionNum += 1
-
-district = list_entries("territoryName", overall_vote_count_pd)
+district = list(overall_vote_count_pd.loc[:, "territoryName"].drop_duplicates())
 district.remove("Território Nacional")
 
-# council has district as key and its councils as values
-council = dict()
-for item in district:
-    council[item] = list(parishes_vote_count_pd["Council"][parishes_vote_count_pd["District"] == item].drop_duplicates())
-
-# parish has council as key and its parishes as values
-parish = dict()
-for key, value in council.items():
-    for item in value:
-        parish[item] = list(parishes_vote_count_pd["territoryName"][parishes_vote_count_pd["Council"] == item].drop_duplicates())
-
-def retrieveRegion(option):
-        match option:
-            case "1":
-                return pickDistrict()
-            case "2":
-                return pickCouncil()
-            case "3":
-                return pickParish()
-            case _:
-                return -1
-
-def pickDistrict():
+def pickDistrict(exceptions):
     count = 1
-    for item in district:
+    cleanDistrictList = district
+    for item in exceptions:
+        try:
+            cleanDistrictList.remove(item)
+        except:
+            continue
+    print("\n#####OS DISTRITOS#####")
+    for item in cleanDistrictList:
         print(count, item)
         count += 1
-    pickedDistrict = input("Escolha o distrito => ")
-    return district[int(pickedDistrict)-1]
+    pickedDistrict = ""
+    while pickedDistrict not in cleanDistrictList:
+        pickedDistrict = input("Escolha um distrito => ")
+        try:
+            pickedDistrict = cleanDistrictList[int(pickedDistrict)-1]
+        except:
+            pickedDistrict = ""
+    return pickedDistrict
 
-def pickCouncil():
-    district = pickDistrict()
+def pickCouncil(exceptions):
+    district = pickDistrict(exceptions)
+    while district == "Açores":
+        print("AVISO: Não há informação sobre as subregiões dos Açores")
+        district = pickDistrict(exceptions)
     filteredCouncil= list(parishes_vote_count_pd["Council"][parishes_vote_count_pd["District"] == district].drop_duplicates())
+    cleanCouncilList = filteredCouncil
+    for item in exceptions:
+        try:
+            cleanCouncilList.remove(item)
+        except:
+            continue
     count = 1
-    for item in filteredCouncil:
+    print("\n#####OS CONCELHOS#####")
+    for item in cleanCouncilList:
         print(count, item)
         count += 1
-    pickedCouncil = input("Escolha o concelho => ")
-    return filteredCouncil[int(pickedCouncil)-1]
+    pickedCouncil = ""
+    while pickedCouncil not in cleanCouncilList:
+        pickedCouncil = input("Escolha um concelho => ")
+        try:
+            pickedCouncil = cleanCouncilList[int(pickedCouncil)-1]
+        except:
+            pickedCouncil = ""
+    return pickedCouncil
 
-def pickParish():
-    council = pickCouncil()
+def pickParish(exceptions):
+    council = pickCouncil(exceptions)
     filteredParish = list((parishes_vote_count_pd["territoryName"][parishes_vote_count_pd["Council"] == council].drop_duplicates()))
     count = 1
-    for item in filteredParish:
+    cleanParishList = filteredParish
+    for item in exceptions:
+        try:
+            cleanParishList.remove(item)
+        except:
+            continue
+    print("\n#####AS FREGUESIAS#####")
+    for item in cleanParishList:
         print(count,item)
         count += 1
-    pickedParish = input("Escolha a freguesia => ")
-    print(filteredParish[int(pickedParish)-1])
-    return filteredParish[int(pickedParish)-1]
+    pickedParish = ""
+    while pickedParish not in cleanParishList:
+        pickedParish = input("Escolha uma freguesia => ")
+        try:
+            pickedParish = cleanParishList[int(pickedParish)-1]
+        except:
+            pickedParish = ""
+    return pickedParish
 
-def pickColumn(table):
+def pickColumn(table, exceptions):
     count = 1
-    for col in table.columns:
+    columns = list((table.columns))
+    # delete columns of non quantitative variables and already selected columns
+    columnsToRemove = list(["territoryName","Council", "District"])
+    columnsToRemove = columnsToRemove + exceptions
+    for item in columnsToRemove:
+        try:
+            columns.remove(item)
+        except:
+            continue
+    for col in columns:
         print(count, col)
         count += 1
-    pickedCol = input("Qual a informação que pretende? => ")
-    while int(pickedCol) not in range(0, count):
-        pickedCol = input("Opção inexistente.\nQual a informação que pretende? => ")
-    return table.columns.tolist()[int(pickedCol)-1]
+    pickedCol = ""
+    while pickedCol not in columns:
+        pickedCol = input("Qual a informação que pretende? => ")
+        try:
+            pickedCol = columns[int(pickedCol)-1]
+        except:
+            pickedCol = ""
+    return pickedCol
 
 
 def func_one():
+    adminDivision = input("1 Distrito\n2 Concelho\n3 Freguesia\n4 Cancelar operação\nQual a divisão administrativa de interesse?\nDigite um número => ")
+    while adminDivision not in ["1","2","3","4"]:
+        adminDivision = input("\n1 Distrito\n2 Concelho\n3 Freguesia\n4 Cancelar operação\nQual a divisão administrativa de interesse?\nDigite um número => ")
+    match adminDivision:
+        case "1":
+            def adminDivisionFun(array): return pickDistrict(array)
+        case "2":
+            def adminDivisionFun(array): return pickCouncil(array)
+        case "3":
+            def adminDivisionFun(array): return pickParish(array)
+        case "4":
+            print("Operação cancelada")
+            return
+        case _:
+            print("AVISO: Valor inválido")
+
     territoryList = []
     pickRegionFlag = "s"
-    adminDivision = input("Qual é a divisão administrativa que lhe interessa?\n1 Distrito\n2 Concelho\n3 Freguesia\nDigite um número => ")
-    territoryList.append(retrieveRegion(adminDivision))
     while pickRegionFlag == "s":
-        print("Escolha região para comparar")
-        territoryList.append(retrieveRegion(adminDivision))
+        territoryList.append(adminDivisionFun(territoryList))
         print("Regiões selecionadas ", territoryList)
         pickRegionFlag = input("Escolher outra região?(s/n) => ")
+
     if adminDivision == "1":
-        column = pickColumn(overall_vote_count_pd)
-        plt.bar(list(overall_vote_count_pd["territoryName"][overall_vote_count_pd["territoryName"].isin(territoryList)]), overall_vote_count_pd[column][overall_vote_count_pd["territoryName"].isin(territoryList)])
-        plt.ylabel(column)
-        plt.show()
+        usedDataFrame = overall_vote_count_pd
+        indexCol = "territoryName"
+        column = []
+        pickColumnFlag = "s"
+        while pickColumnFlag == "s" or len(column) == 0:
+            column.append(pickColumn(usedDataFrame, column))
+            print("Informações selecionadas ", column)
+            pickColumnFlag = input("Escolher mais informações?(s/n) => ")
     elif adminDivision == "2":
-        column = pickColumn(parishes_vote_count_pd)
-        plt.bar(list(parishes_vote_count_pd["Council"][parishes_vote_count_pd["Council"].isin(territoryList)]), parishes_vote_count_pd[column][parishes_vote_count_pd["Council"].isin(territoryList)])
-        plt.ylabel(column)
-        plt.show()
+        usedDataFrame = parishes_vote_count_pd
+        indexCol = "Council"
+        column = []
+        pickColumnFlag = "s"
+        while pickColumnFlag == "s" or len(column) == 0:
+            column.append(pickColumn(usedDataFrame, column))
+            print("Informações selecionadas ", column)
+            pickColumnFlag = input("Escolher mais informações?(s/n) => ")
     else:
-        column = pickColumn(parishes_vote_count_pd)
-        plt.bar(list(parishes_vote_count_pd["Parish"][parishes_vote_count_pd["Parish"].isin(territoryList)]), parishes_vote_count_pd[column][parishes_vote_count_pd["Parish"].isin(territoryList)])
-        plt.ylabel(column)
-        plt.show()
+        usedDataFrame = parishes_vote_count_pd
+        indexCol = "territoryName"
+        column = []
+        pickColumnFlag = "s"
+        while pickColumnFlag == "s" or len(column) == 0:
+            column.append(pickColumn(usedDataFrame, column))
+            print("Informações selecionadas ", column)
+            pickColumnFlag = input("Escolher mais informações?(s/n) => ")
+
+    ax = plt.subplot(111)
+    ind = np.arange(len(territoryList))
+    width = 0.15
+    rects = []
+    usedDataFrame = usedDataFrame.groupby(indexCol).sum().reset_index() #required for councils, which have multiple entries in the dataset
+    for item in column:
+        rects.append(ax.bar(ind+(width*column.index(item)), usedDataFrame[item][usedDataFrame[indexCol].isin(territoryList)], width))
+        ax.set_xticks(ind+(width*column.index(item))/2)
+        ax.set_xticklabels(territoryList, rotation=45)
+    graphBars = []
+    for item in rects:
+        graphBars.append(item[0])
+    ax.legend(graphBars,column)
+    plt.show()
+
 
 func_one()
