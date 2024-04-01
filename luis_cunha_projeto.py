@@ -46,7 +46,7 @@ def pickDistrict(exceptions):
             cleanDistrictList.remove(item)
         except:
             continue
-    print("\n#####OS DISTRITOS#####")
+    print("\n#####DISTRITOS#####")
     for item in cleanDistrictList:
         print(count, item)
         count += 1
@@ -56,13 +56,14 @@ def pickDistrict(exceptions):
         try:
             pickedDistrict = cleanDistrictList[int(pickedDistrict)-1]
         except:
+            print("----- AVISO\": Valor inválido -----")
             pickedDistrict = ""
     return pickedDistrict
 
 def pickCouncil(exceptions):
     district = pickDistrict(exceptions)
     while district == "Açores":
-        print("AVISO: Não há informação sobre as subregiões dos Açores")
+        print("----- AVISO\": Não há informação sobre as subregiões dos Açores -----")
         district = pickDistrict(exceptions)
     filteredCouncil= list(parishes_vote_count_pd["Council"][parishes_vote_count_pd["District"] == district].drop_duplicates())
     cleanCouncilList = filteredCouncil
@@ -72,7 +73,7 @@ def pickCouncil(exceptions):
         except:
             continue
     count = 1
-    print("\n#####OS CONCELHOS#####")
+    print("\n#####CONCELHOS#####")
     for item in cleanCouncilList:
         print(count, item)
         count += 1
@@ -82,6 +83,7 @@ def pickCouncil(exceptions):
         try:
             pickedCouncil = cleanCouncilList[int(pickedCouncil)-1]
         except:
+            print("----- AVISO\": Valor inválido -----")
             pickedCouncil = ""
     return pickedCouncil
 
@@ -95,7 +97,7 @@ def pickParish(exceptions):
             cleanParishList.remove(item)
         except:
             continue
-    print("\n#####AS FREGUESIAS#####")
+    print("\n#####FREGUESIAS#####")
     for item in cleanParishList:
         print(count,item)
         count += 1
@@ -105,6 +107,7 @@ def pickParish(exceptions):
         try:
             pickedParish = cleanParishList[int(pickedParish)-1]
         except:
+            print("----- AVISO\": Valor inválido -----")
             pickedParish = ""
     return pickedParish
 
@@ -128,6 +131,7 @@ def pickColumn(table, exceptions):
         try:
             pickedCol = columns[int(pickedCol)-1]
         except:
+            print("----- AVISO: Valor inválido -----")
             pickedCol = ""
     return pickedCol
 
@@ -147,14 +151,18 @@ def func_one():
             print("Operação cancelada")
             return
         case _:
-            print("AVISO: Valor inválido")
+            print("----- AVISO: Valor inválido -----")
 
     territoryList = []
     pickRegionFlag = "s"
+    territoryList.append(adminDivisionFun(territoryList))
     while pickRegionFlag == "s":
-        territoryList.append(adminDivisionFun(territoryList))
         print("Regiões selecionadas ", territoryList)
+        territoryList.append(adminDivisionFun(territoryList))
         pickRegionFlag = input("Escolher outra região?(s/n) => ")
+        while pickRegionFlag != "s" and pickRegionFlag != "n":
+            print("----- AVISO: Valor inválido -----")
+            pickRegionFlag = input("Escolher outra região?(s/n) => ")
 
     if adminDivision == "1":
         usedDataFrame = overall_vote_count_pd
@@ -165,6 +173,9 @@ def func_one():
             column.append(pickColumn(usedDataFrame, column))
             print("Informações selecionadas ", column)
             pickColumnFlag = input("Escolher mais informações?(s/n) => ")
+            while pickColumnFlag != "s" and pickColumnFlag != "n":
+                print("----- AVISO: Valor inválido -----")
+                pickColumnFlag = input("Escolher mais informações?(s/n) => ")
     elif adminDivision == "2":
         usedDataFrame = parishes_vote_count_pd
         indexCol = "Council"
@@ -174,6 +185,9 @@ def func_one():
             column.append(pickColumn(usedDataFrame, column))
             print("Informações selecionadas ", column)
             pickColumnFlag = input("Escolher mais informações?(s/n) => ")
+            while pickColumnFlag != "s" and pickColumnFlag != "n":
+                print("----- AVISO: Valor inválido -----")
+                pickColumnFlag = input("Escolher mais informações?(s/n) => ")
     else:
         usedDataFrame = parishes_vote_count_pd
         indexCol = "territoryName"
@@ -183,6 +197,9 @@ def func_one():
             column.append(pickColumn(usedDataFrame, column))
             print("Informações selecionadas ", column)
             pickColumnFlag = input("Escolher mais informações?(s/n) => ")
+            while pickColumnFlag != "s" and pickColumnFlag != "n":
+                print("----- AVISO: Valor inválido -----")
+                pickColumnFlag = input("Escolher mais informações?(s/n) => ")
 
     ax = plt.subplot(111)
     ind = np.arange(len(territoryList))
