@@ -1,8 +1,8 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from pandas.compat import pickle_compat
-from pandas.core.generic import pickle
+# from pandas.compat import pickle_compat
+# from pandas.core.generic import pickle
 
 ########################################
 ########## DATAFRAMES CLEANUP ##########
@@ -26,8 +26,19 @@ overall_vote_count_pd = getLatestEntries(overall_vote_count_pd,"time").drop(colu
 
 parishes_vote_count_pd = pd.DataFrame(pd.read_csv("Eleicoes/Legislativas2019/parishes.csv")).drop(columns=["time", "territoryFullName", "territoryKey", "totalMandates", "pre.totalMandates", "numParishes", "numParishesApproved", "availableMandates", "pre.availableMandates"], axis=1) #numParishes and numParishesApproved is obviously always 1, availableMandates always 0
 
-county_parties_result_pd = pd.DataFrame(pd.read_csv("Eleicoes/Legislativas2019/votes.csv"))
-county_parties_result_pd = getLatestEntries(county_parties_result_pd,"time").drop("time", axis=1)
+council_vote_count_pd = parishes_vote_count_pd.groupby("Council").sum().reset_index() # group info by council based on the parishes info dataframe
+councilPercentagesColumns = ["blankVotesPercentage", "nullVotesPercentage", "votersPercentage", "pre.blankVotesPercentage", "pre.nullVotesPercentage", "pre.votersPercentage"]
+
+councils = (list(council_vote_count_pd["Council"]))
+for item in councils:
+    for subitem in councilPercentagesColumns:
+        council_vote_count_pd[subitem][council_vote_count_pd["Council"] == item] = parishes_vote_count_pd[subitem][parishes_vote_count_pd["Council"] == item].mean()
+
+# print(council_vote_count_pd["votersPercentage"])
+print(parishes_vote_count_pd["blankVotesPercentage"][parishes_vote_count_pd["Council"] == "Águeda"].mean())
+
+district_parties_result_pd = pd.DataFrame(pd.read_csv("Eleicoes/Legislativas2019/votes.csv"))
+district_parties_result_pd = getLatestEntries(district_parties_result_pd,"time").drop("time", axis=1)
 
 parishes_parties_result_pd = pd.DataFrame(pd.read_csv("Eleicoes/Legislativas2019/votes_parishes.csv"))
 
@@ -217,4 +228,4 @@ def func_one():
     plt.show()
 
 
-func_one()
+# func_one()
