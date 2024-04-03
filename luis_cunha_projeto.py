@@ -34,9 +34,6 @@ for item in councils:
     for subitem in councilPercentagesColumns:
         council_vote_count_pd[subitem][council_vote_count_pd["Council"] == item] = parishes_vote_count_pd[subitem][parishes_vote_count_pd["Council"] == item].mean()
 
-# print(council_vote_count_pd["votersPercentage"])
-print(parishes_vote_count_pd["blankVotesPercentage"][parishes_vote_count_pd["Council"] == "Águeda"].mean())
-
 district_parties_result_pd = pd.DataFrame(pd.read_csv("Eleicoes/Legislativas2019/votes.csv"))
 district_parties_result_pd = getLatestEntries(district_parties_result_pd,"time").drop("time", axis=1)
 
@@ -133,6 +130,7 @@ def pickColumn(table, exceptions):
             columns.remove(item)
         except:
             continue
+    print("#####INFORMAÇÕES DISPONÍVEIS#####")
     for col in columns:
         print(count, col)
         count += 1
@@ -188,7 +186,7 @@ def func_one():
                 print("----- AVISO: Valor inválido -----")
                 pickColumnFlag = input("Escolher mais informações?(s/n) => ")
     elif adminDivision == "2":
-        usedDataFrame = parishes_vote_count_pd
+        usedDataFrame = council_vote_count_pd
         indexCol = "Council"
         column = []
         pickColumnFlag = "s"
@@ -228,4 +226,4 @@ def func_one():
     plt.show()
 
 
-# func_one()
+func_one()
