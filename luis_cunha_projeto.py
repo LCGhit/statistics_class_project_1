@@ -26,7 +26,7 @@ overall_vote_count_pd = getLatestEntries(overall_vote_count_pd,"time").drop(colu
 
 parishes_vote_count_pd = pd.DataFrame(pd.read_csv("Eleicoes/Legislativas2019/parishes.csv")).drop(columns=["time", "territoryFullName", "territoryKey", "totalMandates", "pre.totalMandates", "numParishes", "numParishesApproved", "availableMandates", "pre.availableMandates"], axis=1) #numParishes and numParishesApproved is obviously always 1, availableMandates always 0
 
-council_vote_count_pd = parishes_vote_count_pd.groupby("Council").sum().reset_index() # group info by council based on the parishes info dataframe
+council_vote_count_pd = parishes_vote_count_pd.groupby("Council").sum(numeric_only=True).reset_index() # group info by council based on the parishes info dataframe
 councilPercentagesColumns = ["blankVotesPercentage", "nullVotesPercentage", "votersPercentage", "pre.blankVotesPercentage", "pre.nullVotesPercentage", "pre.votersPercentage"]
 
 councils = (list(council_vote_count_pd["Council"]))
