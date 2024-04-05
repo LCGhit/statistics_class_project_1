@@ -160,7 +160,7 @@ def func_one():
             print("Operação cancelada")
             return
         case _:
-            print("----- AVISO: Valor inválido -----")
+            return
 
     territoryList = []
     pickRegionFlag = "s"
