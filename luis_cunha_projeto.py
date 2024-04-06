@@ -37,7 +37,13 @@ for item in councils:
 district_parties_result_pd = pd.DataFrame(pd.read_csv("Eleicoes/Legislativas2019/votes.csv"))
 district_parties_result_pd = getLatestEntries(district_parties_result_pd,"time").drop("time", axis=1)
 
+
 parishes_parties_result_pd = pd.DataFrame(pd.read_csv("Eleicoes/Legislativas2019/votes_parishes.csv"))
+parishes_parties_result_pd.rename(columns = {"District":"Parish"}, inplace=True)
+
+council_parties_result_pd = parishes_parties_result_pd.groupby(["District.1", "Council", "Party"]).sum(numeric_only=True).reset_index()
+council_parties_result_pd = council_parties_result_pd[["Council", "Party", "Votes", "District.1"]]
+
 
 ########################################
 ########## DATAFRAMES CLEANUP ##########
@@ -226,4 +232,48 @@ def func_one():
     plt.show()
 
 
-func_one()
+def func_two():
+    partyList = list(council_parties_result_pd["Party"].drop_duplicates())
+
+    counter = 1
+    pickedParty = ""
+    while pickedParty not in partyList:
+        for item in partyList:
+            print(counter, item)
+            counter += 1
+        try:
+            pickedParty = partyList[int(input("Escolha um partido => "))-1]
+        except:
+            print("----- AVISO: Opção inválida -----")
+    lostCouncils = []
+    print("PARTY PICKED ", pickedParty)
+    for item in list(council_parties_result_pd["Council"].drop_duplicates()):
+        if pickedParty not in list(council_parties_result_pd["Party"][council_parties_result_pd["Votes"] == council_parties_result_pd["Votes"][council_parties_result_pd["Council"] == item].max()][council_parties_result_pd["Council"] == item]):
+            lostCouncils.append(item)
+
+    optimalCouncils = dict()
+    for council in lostCouncils:
+
+        # vote sum from the whole district of the council
+        theDistrict = list(council_parties_result_pd["District.1"][council_parties_result_pd["Council"] == council].drop_duplicates())[0]
+
+        # array with the district's total vote count for each party
+        partiesTotalVotes = []
+        for party in partyList:
+            partiesTotalVotes.append(council_parties_result_pd["Votes"][council_parties_result_pd["District.1"] == theDistrict][council_parties_result_pd["Party"] == party].sum())
+
+        districtTotalVotes = council_parties_result_pd["Votes"][council_parties_result_pd["District.1"] == theDistrict][council_parties_result_pd["Party"] == pickedParty].sum()
+
+        if max(partiesTotalVotes) == districtTotalVotes:
+            optimalCouncils.setdefault(theDistrict, [])
+            optimalCouncils[theDistrict].append(council)
+    if len(optimalCouncils) != 0:
+        print("Os concelhos com maior probabilidade de serem recuperados pelo partido escolhido("+pickedParty+") :")
+        for key in optimalCouncils:
+            print("\nDISTRITO: "+key.upper())
+            for value in optimalCouncils[key]:
+                print(value)
+    else:
+        print("O seu partido não venceu em qualquer distrito.")
+
+func_two()
