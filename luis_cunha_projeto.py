@@ -1,8 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-# from pandas.compat import pickle_compat
-# from pandas.core.generic import pickle
 
 ########################################
 ########## DATAFRAMES CLEANUP ##########
@@ -49,6 +47,10 @@ council_parties_result_pd = council_parties_result_pd[["Council", "Party", "Vote
 ########## DATAFRAMES CLEANUP ##########
 ########################################
 
+def getBold(input):
+    bold = "\033[1m"+input+"\033[0m"
+    return bold
+
 district = list(overall_vote_count_pd.loc[:, "territoryName"].drop_duplicates())
 district.remove("Território Nacional")
 
@@ -60,9 +62,9 @@ def pickDistrict(exceptions):
             cleanDistrictList.remove(item)
         except:
             continue
-    print("\n#####DISTRITOS#####")
+    print(getBold("\n#####DISTRITOS#####"))
     for item in cleanDistrictList:
-        print(count, item)
+        print("\033[1m",count,"\033[0m", item)
         count += 1
     pickedDistrict = ""
     while pickedDistrict not in cleanDistrictList:
@@ -70,14 +72,14 @@ def pickDistrict(exceptions):
         try:
             pickedDistrict = cleanDistrictList[int(pickedDistrict)-1]
         except:
-            print("----- AVISO\": Valor inválido -----")
+            print("----- \033[1m AVISO \033[0m: Valor inválido -----")
             pickedDistrict = ""
     return pickedDistrict
 
 def pickCouncil(exceptions):
     district = pickDistrict(exceptions)
     while district == "Açores":
-        print("----- AVISO\": Não há informação sobre as subregiões dos Açores -----")
+        print("----- \033[1m AVISO \033[0m: Não há informação sobre as subregiões dos Açores -----")
         district = pickDistrict(exceptions)
     filteredCouncil= list(parishes_vote_count_pd["Council"][parishes_vote_count_pd["District"] == district].drop_duplicates())
     cleanCouncilList = filteredCouncil
@@ -87,9 +89,9 @@ def pickCouncil(exceptions):
         except:
             continue
     count = 1
-    print("\n#####CONCELHOS#####")
+    print(getBold("\n#####CONCELHOS#####"))
     for item in cleanCouncilList:
-        print(count, item)
+        print("\033[1m",count,"\033[0m", item)
         count += 1
     pickedCouncil = ""
     while pickedCouncil not in cleanCouncilList:
@@ -97,7 +99,7 @@ def pickCouncil(exceptions):
         try:
             pickedCouncil = cleanCouncilList[int(pickedCouncil)-1]
         except:
-            print("----- AVISO\": Valor inválido -----")
+            print("----- \033[1m AVISO \033[0m: Valor inválido -----")
             pickedCouncil = ""
     return pickedCouncil
 
@@ -111,9 +113,9 @@ def pickParish(exceptions):
             cleanParishList.remove(item)
         except:
             continue
-    print("\n#####FREGUESIAS#####")
+    print(getBold("\n#####FREGUESIAS#####"))
     for item in cleanParishList:
-        print(count,item)
+        print("\033[1m",count,"\033[0m",item)
         count += 1
     pickedParish = ""
     while pickedParish not in cleanParishList:
@@ -121,7 +123,7 @@ def pickParish(exceptions):
         try:
             pickedParish = cleanParishList[int(pickedParish)-1]
         except:
-            print("----- AVISO\": Valor inválido -----")
+            print("----- \033[1m AVISO \033[0m: Valor inválido -----")
             pickedParish = ""
     return pickedParish
 
@@ -136,9 +138,9 @@ def pickColumn(table, exceptions):
             columns.remove(item)
         except:
             continue
-    print("#####INFORMAÇÕES DISPONÍVEIS#####")
+    print(getBold("\n#####INFORMAÇÕES DISPONÍVEIS#####"))
     for col in columns:
-        print(count, col)
+        print("\033[1m",count,"\033[0m", col)
         count += 1
     pickedCol = ""
     while pickedCol not in columns:
@@ -146,15 +148,15 @@ def pickColumn(table, exceptions):
         try:
             pickedCol = columns[int(pickedCol)-1]
         except:
-            print("----- AVISO: Valor inválido -----")
+            print("----- \033[1m AVISO \033[0m: Valor inválido -----")
             pickedCol = ""
     return pickedCol
 
 
 def func_one():
-    adminDivision = input("1 Distrito\n2 Concelho\n3 Freguesia\n4 Cancelar operação\nQual a divisão administrativa de interesse?\nDigite um número => ")
+    adminDivision = input("\033[1mQual a divisão administrativa de interesse?\033[0m\n\033[1m1\033[0m Distrito\n\033[1m2\033[0m Concelho\n\033[1m3\033[0m Freguesia\n\033[1m4\033[0m Cancelar operação\nDigite um número => ")
     while adminDivision not in ["1","2","3","4"]:
-        adminDivision = input("\n1 Distrito\n2 Concelho\n3 Freguesia\n4 Cancelar operação\nQual a divisão administrativa de interesse?\nDigite um número => ")
+        adminDivision = input("\033[1mQual a divisão administrativa de interesse?\033[0m\n\033[1m1\033[0m Distrito\n\033[1m2\033[0m Concelho\n\033[1m3\033[0m Freguesia\n\033[1m4\033[0m Cancelar operação\nDigite um número => ")
     match adminDivision:
         case "1":
             def adminDivisionFun(array): return pickDistrict(array)
@@ -176,7 +178,7 @@ def func_one():
         territoryList.append(adminDivisionFun(territoryList))
         pickRegionFlag = input("Escolher outra região?(s/n) => ")
         while pickRegionFlag != "s" and pickRegionFlag != "n":
-            print("----- AVISO: Valor inválido -----")
+            print("----- \033[1m AVISO \033[0m: Valor inválido -----")
             pickRegionFlag = input("Escolher outra região?(s/n) => ")
 
     if adminDivision == "1":
@@ -189,7 +191,7 @@ def func_one():
             print("Informações selecionadas ", column)
             pickColumnFlag = input("Escolher mais informações?(s/n) => ")
             while pickColumnFlag != "s" and pickColumnFlag != "n":
-                print("----- AVISO: Valor inválido -----")
+                print("----- \033[1m AVISO \033[0m: Valor inválido -----")
                 pickColumnFlag = input("Escolher mais informações?(s/n) => ")
     elif adminDivision == "2":
         usedDataFrame = council_vote_count_pd
@@ -201,7 +203,7 @@ def func_one():
             print("Informações selecionadas ", column)
             pickColumnFlag = input("Escolher mais informações?(s/n) => ")
             while pickColumnFlag != "s" and pickColumnFlag != "n":
-                print("----- AVISO: Valor inválido -----")
+                print("----- \033[1m AVISO \033[0m: Valor inválido -----")
                 pickColumnFlag = input("Escolher mais informações?(s/n) => ")
     else:
         usedDataFrame = parishes_vote_count_pd
@@ -213,7 +215,7 @@ def func_one():
             print("Informações selecionadas ", column)
             pickColumnFlag = input("Escolher mais informações?(s/n) => ")
             while pickColumnFlag != "s" and pickColumnFlag != "n":
-                print("----- AVISO: Valor inválido -----")
+                print("----- \033[1m AVISO \033[0m: Valor inválido -----")
                 pickColumnFlag = input("Escolher mais informações?(s/n) => ")
 
     ax = plt.subplot(111)
@@ -234,19 +236,22 @@ def func_one():
 
 def func_two():
     partyList = list(council_parties_result_pd["Party"].drop_duplicates())
-
-    counter = 1
     pickedParty = ""
     while pickedParty not in partyList:
+        count = 1
         for item in partyList:
-            print(counter, item)
-            counter += 1
+            print("\033[1m",count,"\033[0m", item)
+            count += 1
         try:
-            pickedParty = partyList[int(input("Escolha um partido => "))-1]
+            pickedParty = int(input("0 Voltar\nEscolha um partido => "))-1
+            if pickedParty == -1:
+                return
+            else:
+                pickedParty = partyList[pickedParty]
         except:
-            print("----- AVISO: Opção inválida -----")
+            print("----- \033[1m AVISO \033[0m: Opção inválida -----")
     lostCouncils = []
-    print("PARTY PICKED ", pickedParty)
+    print("PARTIDO ESCOLHIDO: ", pickedParty, "\nAguarde por favor...")
     for item in list(council_parties_result_pd["Council"].drop_duplicates()):
         if pickedParty not in list(council_parties_result_pd["Party"][council_parties_result_pd["Votes"] == council_parties_result_pd["Votes"][council_parties_result_pd["Council"] == item].max()][council_parties_result_pd["Council"] == item]):
             lostCouncils.append(item)
@@ -268,7 +273,7 @@ def func_two():
             optimalCouncils.setdefault(theDistrict, [])
             optimalCouncils[theDistrict].append(council)
     if len(optimalCouncils) != 0:
-        print("Os concelhos com maior probabilidade de serem recuperados pelo partido escolhido("+pickedParty+") :")
+        print("Os concelhos com maior probabilidade de serem recuperados pelo partido escolhido(" , pickedParty , ") :")
         for key in optimalCouncils:
             print("\nDISTRITO: "+key.upper())
             for value in optimalCouncils[key]:
@@ -276,4 +281,30 @@ def func_two():
     else:
         print("O seu partido não venceu em qualquer distrito.")
 
-func_two()
+def mainMenu():
+    option = ""
+    print(getBold("MENSAGEM DE BOAS-VINDAS"))
+    while option != "0":
+        print(getBold("*MENU PRINCIPAL*"))
+        print(getBold("O que pretende fazer?") + "\n\033[1m1\033[0m Comparar dados entre regiões\n\033[1m2\033[0m Determinar concelhos mais promissores para o partido\n\033[1m3\033[0m Determinar zonas mais voláteis\n\033[1m0\033[0m Sair")
+        option = input("Escolha uma opção => ")
+        match option:
+            case "1":
+                func_one()
+            case "2":
+                func_two()
+            case "0":
+                doubleCheck = ""
+                while doubleCheck not in ["s", "n"]:
+                    doubleCheck = input("Tem a certeza que pretende sair?(\033[1ms/n\033[0m) => ")
+                    if doubleCheck == "s":
+                        print(getBold("Até breve!"))
+                        break
+                    elif doubleCheck == "n":
+                        option = ""
+                    else:
+                        print("----- \033[1m AVISO \033[0m: Opção inválida -----")
+            case _:
+                print("----- \033[1m AVISO \033[0m: Opção inválida -----")
+
+mainMenu()
