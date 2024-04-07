@@ -168,8 +168,8 @@ def pickColumn(table, exceptions):
     return pickedCol
 
 
-def pickParty():
-    partyList = list(council_parties_result_pd["Party"].drop_duplicates())
+def pickParty(list):
+    partyList = list
     pickedParty = ""
     while pickedParty not in partyList:
         count = 1
@@ -270,7 +270,7 @@ def func_one():
 
 def func_two():
     partyList = list(council_parties_result_pd["Party"].drop_duplicates())
-    pickedParty = pickParty()
+    pickedParty = pickParty(list(council_parties_result_pd["Party"].drop_duplicates()))
     lostCouncils = []
     print("PARTIDO ESCOLHIDO: ", pickedParty, "\nAguarde por favor...")
     for item in list(council_parties_result_pd["Council"].drop_duplicates()):
@@ -321,43 +321,59 @@ def func_two():
 def func_three():
     thisYear = district_parties_result_pd
     previousYear = previousYear_parties_result_pd
-    party = pickParty()
-    territoryList = []
-    pickRegionFlag = "s"
-    territoryList.append(pickDistrict(territoryList))
-    print("\n(\033[1mRegiões selecionadas ", territoryList, "\033[0m")
-    while pickRegionFlag == "s":
-        territoryList.append(pickDistrict(territoryList))
-        print("\n(\033[1mRegiões selecionadas ", territoryList, "\033[0m")
-        pickRegionFlag = input("Escolher outra região?(\033[1ms/n\033[0m) => ")
-        while pickRegionFlag != "s" and pickRegionFlag != "n":
-            print("----- \033[1m AVISO \033[0m: Valor inválido -----")
-            pickRegionFlag = input("Escolher outra região?(\033[1ms/n\033[0m) => ")
+    previousYear.rename(columns={"perc_votos":"validVotesPercentage", "partido":"Party", "nome":"District"}, inplace=True)
+    previousYear["Party"][previousYear["Party"] == "BE"] = "B.E."
+    partyList = list(thisYear["Party"].drop_duplicates())
+    partyList_match = list(previousYear["Party"].drop_duplicates())
+    for item in partyList:
+        if item not in partyList_match:
+            partyList.remove(item)
+    party = pickParty(partyList)
+    territoryList = list(thisYear["District"].drop_duplicates())
+    territoryList.remove("Território Nacional")
+    results_difference = []
+    for item in territoryList:
+        try:
+            currentVotes = int(list(thisYear["validVotesPercentage"][thisYear["Party"] == party][thisYear["District"] == item])[0]*100)
+            previousVotes = int(list(previousYear["validVotesPercentage"][previousYear["Party"] == party][previousYear["District"] == item])[0]*100)
+            results_difference.append((currentVotes-previousVotes)/100)
+        except:
+            results_difference.append(0)
 
-    previousYear.rename(columns={"num_votos":"Votes", "partido":"Party", "nome":"District"}, inplace=True)
-    # for item in territoryList:
-    #     print(thisYear["validVotesPercentage"][thisYear["Party"] == party][thisYear["District"] == item])
-    #     print(previousYear["validVotesPercentage"][previousYear["Party"] == party][previousYear["District"] == item])
-
-    column = ["Votes"]
-    ax = plt.subplot(111)
-    ind = np.arange(len(territoryList))
-    width = 0.15
-    ax.bar(ind+(width*column.index("Votes")), thisYear["Votes"][thisYear["Party"] == party][thisYear["District"].isin(territoryList)], width)
-    ax.set_xticks(ind+(width*column.index("Votes"))/2)
-    ax.set_xticklabels(territoryList, rotation=45)
-
-    ax.bar(ind+(width*column.index("Votes")), previousYear["Votes"][previousYear["Party"] == party][previousYear["District"].isin(territoryList)], width)
-    ax.set_xticks(ind+(width*column.index("Votes"))/2)
-    ax.set_xticklabels(territoryList, rotation=45)
+    fig, ax = plt.subplots()
+    p = ax.bar(territoryList, results_difference, 0.6, label="Território")
+    ax.bar_label(p, label_type="center")
+    title = "Progresso de votos de 2011 para 2019 para "+str(party)
+    ax.set_title(title)
+    ax.set_ylabel("Percentagem")
+    plt.xticks(rotation=45)
     plt.show()
+
+
+def getInfo():
+    option = ""
+    option = input("\n\033[1mObter informação sobre funcionalidade:\033[0m\n\033[1m1\033[0m Comparar dados entre regiões\n\033[1m2\033[0m Determinar concelhos mais promissores para o partido\n\033[1m3\033[0m Determinar zonas mais voláteis\n\033[1m0\033[0m Voltar\n=> ")
+    while option not in ["0","1","2","3"]:
+        print("----- \033[1m AVISO \033[0m: Opção inválida -----")
+        option = input("\n\033[1mObter informação sobre funcionalidade:\033[0m\n\033[1m1\033[0m Comparar dados entre regiões\n\033[1m2\033[0m Determinar concelhos mais promissores para o partido\n\033[1m3\033[0m Determinar zonas mais voláteis\n\033[1m0\033[0m Voltar\n=> ")
+    if option != "0":
+        match option:
+            case "1":
+                print("A primeira funcionalidade permite obter quaisquer informações presentes numa base de dados relativas a determinadas zonas do país (divididas por distrito, concelho ou freguesia), de forma a comparar essas zonas em um ou múltiplos aspetos da votação nas eleições legislativas de 2019.")
+            case "2":
+                print("Com a segunda funcionalidade o utilizador pode determinar os concelhos em que um partido político poderá ter maiores chances de vencer em eleições futuras. O processo através do qual esta avaliação é feita começa pela escolha do partido político.\nDe seguida, o programa avalia todos os distritos nos quais o partido em questão venceu e os concelhos de cada um desses distritos nos quais o partido perdeu.\nO fundamento da avaliação é que um concelho que integra um distrito dominado por um partido poderá estar mais suscetível a converter a sua aliança partidária para aquela do seu distrito.")
+            case "3":
+                print("A terceira funcionalidade pretende avaliar a volatilidade dos distritos em relação a certo partido.\nPara tal, basta ao utilizador escolher o partido político que lhe interessa, e obterá um gráfico que revela a mudança percentual dos votos nesse partido em cada distrito do país.")
+
 
 def mainMenu():
     option = ""
-    print(getBold("MENSAGEM DE BOAS-VINDAS"))
+    print("####################################################################################################")
+    print(getBold("BEM-VINDO AO PROGRAMA DE ANÁLISE ACESSÍVEL DAS ELEIÇÕES LEGISLATIVAS"))
+    print("####################################################################################################")
     while option != "0":
         print(getBold("*MENU PRINCIPAL*"))
-        print(getBold("O que pretende fazer?") + "\n\033[1m1\033[0m Comparar dados entre regiões\n\033[1m2\033[0m Determinar concelhos mais promissores para o partido\n\033[1m3\033[0m Determinar zonas mais voláteis\n\033[1m0\033[0m Sair")
+        print(getBold("O que pretende fazer?") + "\n\033[1m1\033[0m Comparar dados entre regiões\n\033[1m2\033[0m Determinar concelhos mais promissores para o partido\n\033[1m3\033[0m Determinar zonas mais voláteis\n\033[1m4\033[0m Mais informação\n\033[1m0\033[0m Sair")
         option = input("Escolha uma opção => ")
         match option:
             case "1":
@@ -366,6 +382,8 @@ def mainMenu():
                 func_two()
             case "3":
                 func_three()
+            case "4":
+                getInfo()
             case "0":
                 doubleCheck = ""
                 while doubleCheck not in ["s", "n"]:
@@ -380,5 +398,4 @@ def mainMenu():
             case _:
                 print("----- \033[1m AVISO \033[0m: Opção inválida -----")
 
-# mainMenu()
-func_three()
+mainMenu()
