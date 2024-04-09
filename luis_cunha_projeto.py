@@ -373,7 +373,7 @@ def mainMenu():
     print("####################################################################################################")
     while option != "0":
         print(getBold("*MENU PRINCIPAL*"))
-        print(getBold("O que pretende fazer?") + "\n\033[1m1\033[0m Comparar dados entre regiões\n\033[1m2\033[0m Determinar concelhos mais promissores para o partido\n\033[1m3\033[0m Determinar zonas mais voláteis\n\033[1m4\033[0m Mais informação\n\033[1m0\033[0m Sair")
+        print(getBold("O que pretende fazer?") + "\n\033[1m1\033[0m Comparar dados entre regiões\n\033[1m2\033[0m Determinar concelhos mais promissores para o partido\n\033[1m3\033[0m Determinar progressão de partido de 2011 para 2019\n\033[1m4\033[0m Mais informação\n\033[1m0\033[0m Sair")
         option = input("Escolha uma opção => ")
         match option:
             case "1":
